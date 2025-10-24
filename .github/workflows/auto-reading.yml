@@ -13,7 +13,6 @@ on:
       - 'weread-bot.py'
       - 'requirements.txt'
       - '.github/workflows/ci.yml'
-
   # 手动触发
   workflow_dispatch:
     inputs:
@@ -55,56 +54,51 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-
     - name: Create config file
       run: |
         cat > config.yaml << 'EOF'
-app:
-  name: "WeReadBot-GitHub-Action"
-  startup_mode: "immediate"
-  startup_delay: "1-2"
+        app:
+          name: "WeReadBot-GitHub-Action"
+          startup_mode: "immediate"
+          startup_delay: "1-2"
 
-curl_config:
-  users:
-    - name: "One more time"   # 👈 在这里改用户名
-      curl_string: "${{ secrets.WEREAD_CURL_STRING }}"  # 👈 从 GitHub Secrets 读取
+        reading:
+          mode: "${{ github.event.inputs.reading_mode || 'smart_random' }}"
+          # 目标阅读时长（分钟），支持区间随机，格式如："1" 或 "1-2"，当前为：1分钟
+          target_duration: "${{ github.event.inputs.target_duration || '1' }}"
+          reading_interval: "30-48"
+          use_curl_data_first: true
+          fallback_to_config: true
+          smart_random:
+            book_continuity: 0.8
+            chapter_continuity: 0.7
+            book_switch_cooldown: 3600
 
-reading:
-  mode: "${{ github.event.inputs.reading_mode || 'smart_random' }}"
-  target_duration: "${{ github.event.inputs.target_duration || '1' }}"
-  reading_interval: "30-48"
-  use_curl_data_first: true
-  fallback_to_config: true
-  smart_random:
-    book_continuity: 0.8
-    chapter_continuity: 0.7
-    book_switch_cooldown: 3600
+        human_simulation:
+          enabled: false
+          reading_speed_variation: true
+          break_probability: 0.15
+          break_duration: "10-20"
+          rotate_user_agent: false
 
-  human_simulation:
-    enabled: false
-    reading_speed_variation: true
-    break_probability: 0.15
-    break_duration: "10-20"
-    rotate_user_agent: false
+        network:
+          timeout: 30
+          retry_times: 3
+          retry_delay: "5-15"
+          rate_limit: 10
 
-  network:
-    timeout: 30
-    retry_times: 3
-    retry_delay: "5-15"
-    rate_limit: 10
+        notification:
+          enabled: ${{ github.event.inputs.notify_enabled || true }}
+          include_statistics: true
 
-  notification:
-    enabled: ${{ github.event.inputs.notify_enabled || true }}
-    include_statistics: true
-
-  logging:
-    level: "INFO"
-    format: "detailed"
-    file: "logs/weread.log"
-    max_size: "10MB"
-    backup_count: 5
-    console: true
-EOF
+        logging:
+          level: "INFO"
+          format: "detailed"
+          file: "logs/weread.log"
+          max_size: "10MB"
+          backup_count: 5
+          console: true
+        EOF
 
     - name: Create logs directory
       run: mkdir -p logs
