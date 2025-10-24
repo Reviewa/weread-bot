@@ -58,13 +58,18 @@ jobs:
     - name: Create config file
       run: |
         cat > config.yaml << 'EOF'
-        app:
-          name: "WeReadBot-GitHub-Action"
-          startup_mode: "immediate"
-          startup_delay: "1-2"
+app:
+  name: "WeReadBot-GitHub-Action"
+  startup_mode: "immediate"
+  startup_delay: "1-2"
 
-        reading:
-          mode: "${{ github.event.inputs.reading_mode || 'smart_random' }}"
+curl_config:
+  users:
+    - name: "One more time"   # 👈 在这里改用户名
+      curl_string: "${{ secrets.WEREAD_CURL_STRING }}"  # 👈 从 GitHub Secrets 读取
+
+reading:
+  mode: "${{ github.event.inputs.reading_mode || 'smart_random' }}"
           # 目标阅读时长（分钟），支持区间随机，格式如："1" 或 "1-2"，当前为：1分钟
           target_duration: "${{ github.event.inputs.target_duration || '1' }}"
           reading_interval: "30-48"
